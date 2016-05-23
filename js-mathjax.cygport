@@ -1,0 +1,47 @@
+inherit font
+
+NAME="js-mathjax"
+VERSION=2.6.1
+RELEASE=1
+CATEGORY="Interpreters"
+SUMMARY="JavaScript engine for displaying mathematics"
+DESCRIPTION="MathJax is an open-source JavaScript display engine for LaTeX,
+MathML, and AsciiMath notation that works in all modern browsers.  It was
+designed with the goal of consolidating the recent advances in web technologies
+into a single, definitive, math-on-the-web platform supporting the major
+browsers and operating systems."
+HOMEPAGE="https://www.mathjax.org/"
+SRC_URI="https://github.com/mathjax/MathJax/archive/${VERSION}/MathJax-${VERSION}.tar.gz"
+SRC_DIR="MathJax-${VERSION}"
+
+ARCH=noarch
+
+CYGPORT_USE_UNSTABLE_API=1
+src_unpack_hook() {
+	find jax/output -delete
+	for i in $(find -type f -path '*unpacked*')
+	do
+		mkdir -p $(dirname ${i//unpacked/})
+		mv $i ${i//unpacked/}
+	done
+	find -depth -type d -path '*unpacked*' -delete
+	for i in MathJax.js jax/output/HTML-CSS/jax.js jax/output/HTML-CSS/imageFonts.js
+	do
+		sed -r 's#(MathJax|BASE)[.]isPacked#1#' <$i >$i.tmp;
+		touch -r $i $i.tmp;
+		mv $i.tmp $i;
+	done
+}
+
+src_compile() { :; }
+
+src_install() {
+	local pkgjsdir=/usr/share/javascript/mathjax
+
+	cd ${S}
+	dodir $pkgjsdir
+	cp -pr MathJax.js config/ extensions/ fonts/ jax/ localization/ test/ \
+		${D}$pkgjsdir
+}
+
+
